@@ -13,21 +13,31 @@ import (
 )
 
 func main() {
-	d := drive.Folder(credentials.DriveParentFolder)
+	// Services
+	dsvc := drive.NewDriveService(credentials.DriveToken)
+	psvc := putio.NewPutIOService(credentials.PutIOToken)
 
 	// Create a folder with the current time and work within it
-	t := time.Now().Format(time.RFC3339)
-	tf := d.CreateFolder(t)
-	psvc := putio.NewPutIOService(credentials.PutIOToken)
+	df := dsvc.ParentFolder(credentials.DriveParentFolderId)
+	if *flags.Copy {
+		t := time.Now().Format(time.RFC3339)
+		log.Printf("Storing in drive: '%s'", t)
+		df = df.CreateFolder(t)
+	}
+
 	if *flags.ItemIds == "" {
 		log.Printf("Syncing from root")
 		entry := psvc.Root()
-		if err := Walk(entry, tf); err != nil {
+		if err := Walk(entry, df); err != nil {
 			log.Fatalf("error walking %s: %s", entry.Path(), err)
 		}
 	} else {
-		for _, id := range strings.Split(*flags.ItemIds, ",") {
-			id = strings.TrimSpace(id)
+		items := strings.Split(*flags.ItemIds, ",")
+		for i := range items {
+			items[i] = strings.TrimSpace(items[i])
+		}
+		log.Printf("Syncing items: %v", items)
+		for _, id := range items {
 			id_i, err := strconv.Atoi(id)
 			if err != nil {
 				log.Printf("Bad put.io file/folder id (%d): %v", id, err)
@@ -39,7 +49,7 @@ func main() {
 				continue
 			}
 			log.Printf("Syncing %s (%d)", entry.Path(), entry.Id)
-			if err := Walk(entry, tf); err != nil {
+			if err := Walk(entry, df); err != nil {
 				log.Fatalf("error walking %s: %s", entry.Path(), err)
 			}
 		}
