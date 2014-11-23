@@ -18,11 +18,13 @@ var baseUrl = url.URL{
 
 const folderType = "application/x-directory"
 
+// An authenticated connection to put.io
 type PutIOService struct {
 	OauthToken string
 	Client http.Client
 }
 
+// An entry represents a file or folder on put.io
 type Entry struct {
 	Name string `json:"name"`
 	ContentType string `json:"content_type"`
@@ -33,6 +35,7 @@ type Entry struct {
 	path string
 }
 
+// Create a new connection with the given OAUTH token
 func NewPutIOService(token string) *PutIOService {
 	return &PutIOService{token, http.Client{}}
 }
@@ -94,7 +97,10 @@ func (p *PutIOService) do(method string, path string, h http.Header, bodytype st
 	if body != nil {
 		req.Header.Set("Content-Type", bodytype)
 	}
+
+	// This seems to be ok even for binary downloads
 	req.Header.Set("Accept", "application/json")
+
 	log.Printf("Request: %v", req)
 	resp, err := p.Client.Do(req)
 	if err != nil {
