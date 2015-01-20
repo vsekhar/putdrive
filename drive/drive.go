@@ -1,6 +1,7 @@
 package drive
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -59,6 +60,7 @@ func oauthTransport(token *oauth.Token) *oauth.Transport {
 
 type Service struct {
 	gsvc *drive.Service
+	client *http.Client
 }
 
 // File or folder
@@ -74,11 +76,12 @@ func NewDriveService(accessToken, refreshToken string, expiry time.Time) *Servic
 		Expiry: expiry,
 	}
 	t := oauthTransport(token)
-	gsvc, err := drive.New(t.Client())
+	c := t.Client()
+	gsvc, err := drive.New(c)
 	if err != nil {
 		log.Fatalf("creating drive client: %v", err)
 	}
-	return &Service{gsvc}
+	return &Service{gsvc, c}
 }
 
 // A parent folder is a special entry that can only be used to create child
@@ -140,9 +143,55 @@ func (d *Entry) createImpl(name string, data io.Reader, folder bool) *Entry {
 	return &Entry{d.svc, newf}
 }
 
-func (d *Entry) createMultipartFile(name string, data io.Reader) *Entry {
+const uploaderMaxBuffer = 10*1024*1024 // 10MB
+
+// Implements io.WriteCloser
+type Uploader struct {
+	f *Entry
+	buf bytes.Buffer
+}
+
+func (u *Uploader) Write(p []byte) (n int, err error) {
+	n, err = u.buf.Write(p)
+	if err != nil {
+		return
+	}
+	if u.buf.Len() >= uploaderMaxBuffer {
+		err = u.Flush()
+	}
+	return
+}
+
+func (u *Uploader) Flush() error {
+	if u.buf.Len() == 0 {
+		return nil
+	}
+	// TODO: do the upload
+	return nil
+}
+
+func (u *Uploader) Close() error {
+	if err := u.Flush(); err != nil {
+		return err
+	}
+	// TODO: close the upload
+	return nil
+}
+
+func (u *Uploader) File() *Entry {
+	return u.f
+}
+
+func (d *Entry) NewUploader(name string) *Uploader {
 	file := &drive.File{}
 	file.Title = name
 	file.Parents = append(file.Parents, &drive.ParentReference{Id: d.f.Id})
+
+	// start the upload
+
+	// Need to do requests manually since SDK doesn't do resumable downloads
+	// yet...
+	// c := d.svc.client
+
 	return nil
 }
