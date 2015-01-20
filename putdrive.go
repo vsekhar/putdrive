@@ -1,10 +1,11 @@
 package main
 
 import (
-	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/vsekhar/govtil/log"
 
 	"github.com/vsekhar/putdrive/credentials"
 	"github.com/vsekhar/putdrive/drive"
@@ -42,7 +43,7 @@ func main() {
 		for _, id := range items {
 			id_i, err := strconv.Atoi(id)
 			if err != nil {
-				log.Printf("Bad put.io file/folder id (%d): %v", id, err)
+				log.Errorf("Bad put.io file/folder id (%d): %v", id, err)
 				continue
 			}
 			entry := psvc.EntryById(id_i)
@@ -50,9 +51,9 @@ func main() {
 				// not found or error
 				continue
 			}
-			log.Printf("Syncing %s (%d)", entry.Path(), entry.Id)
+			log.Printf("Syncing %s (id: %d)", entry.Path(), entry.Id)
 			if err := Walk(entry, df); err != nil {
-				log.Fatalf("error walking %s: %s", entry.Path(), err)
+				log.Errorf("error walking %s: %s", entry.Path(), err)
 			}
 		}
 	}

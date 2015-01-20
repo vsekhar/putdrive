@@ -3,10 +3,10 @@ package drive
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
+	"github.com/vsekhar/govtil/log"
 	"github.com/vsekhar/putdrive/flags"
 	"github.com/vsekhar/putdrive/credentials"
 
@@ -32,10 +32,10 @@ func oauthTransport(token *oauth.Token) *oauth.Transport {
 	}
 	if token == nil || *flags.NewTokens {
 		// get a token
-		log.Printf("Getting a new token")
+		log.Debugf("Getting a new token")
 		authurl := config.AuthCodeURL("state")
-		log.Printf("Go to the following link in your browser: %v\n", authurl)
-		log.Printf("Enter verification code: ")
+		log.Alwaysf("Go to the following link in your browser: %v\n", authurl)
+		log.Alwaysf("Enter verification code: ")
 		var code string
 		fmt.Scanln(&code)
 		_, err := transport.Exchange(code)
@@ -44,7 +44,7 @@ func oauthTransport(token *oauth.Token) *oauth.Transport {
 		}
 	} else {
 		// use pre-configured token
-		log.Printf("using pre-configured OAUTH2 token")
+		log.Debugf("using pre-configured OAUTH2 token")
 		transport.Token = token
 	}
 	// for debugging

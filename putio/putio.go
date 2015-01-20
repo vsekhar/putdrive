@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/vsekhar/govtil/log"
 )
 
 var baseUrl = url.URL{
@@ -51,7 +52,7 @@ func (p *PutIOService) EntryById(id int) *Entry {
 		log.Fatalf("decoding id JSON: %v", err)
 	}
 	if ir.Status != "OK" {
-		log.Printf("bad status for put.io id %d", id)
+		log.Errorf("bad status for put.io id %d", id)
 		return nil
 	}
 	ir.File.svc = p
@@ -101,10 +102,10 @@ func (p *PutIOService) do(method string, path string, h http.Header, bodytype st
 	// This seems to be ok even for binary downloads
 	req.Header.Set("Accept", "application/json")
 
-	log.Printf("Request: %v", req)
+	log.Debugf("Request: %v", req)
 	resp, err := p.Client.Do(req)
 	if err != nil {
-		log.Printf("making request: %v", err)
+		log.Debugf("making request: %v", err)
 		log.Fatalf("response: %s", resp)
 	}
 	return resp.Body
@@ -187,7 +188,7 @@ func (e *Entry) Delete() error {
 	if err := json.NewDecoder(resp).Decode(&dr); err != nil {
 		log.Fatalf("decoding id JSON: %v", err)
 	}
-	log.Printf("delete response: %+v", dr)	
+	log.Debugf("delete response: %+v", dr)
 	if dr.Status != "OK" {
 		return fmt.Errorf("bad status for put.io delete(%d): %s", e.Id, dr.Status)
 	}
