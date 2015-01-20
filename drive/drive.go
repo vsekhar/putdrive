@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/vsekhar/govtil/log"
+	"code.google.com/p/goauth2/oauth"
+	"code.google.com/p/google-api-go-client/drive/v2"
+
 	"github.com/vsekhar/putdrive/flags"
 	"github.com/vsekhar/putdrive/credentials"
 
-	"code.google.com/p/goauth2/oauth"
-	"code.google.com/p/google-api-go-client/drive/v2"
 )
 
 var config = &oauth.Config{
