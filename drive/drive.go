@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/vsekhar/putdrive/flags"
 	"github.com/vsekhar/putdrive/credentials"
@@ -65,7 +66,12 @@ type Entry struct {
 	f *drive.File
 }
 
-func NewDriveService(token *oauth.Token) *Service {
+func NewDriveService(accessToken, refreshToken string, expiry time.Time) *Service {
+	token := &oauth.Token{
+		AccessToken: accessToken,
+		RefreshToken: refreshToken,
+		Expiry: expiry,
+	}
 	t := oauthTransport(token)
 	gsvc, err := drive.New(t.Client())
 	if err != nil {

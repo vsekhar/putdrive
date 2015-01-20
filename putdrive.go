@@ -14,7 +14,9 @@ import (
 
 func main() {
 	// Services
-	dsvc := drive.NewDriveService(credentials.DriveToken)
+	dsvc := drive.NewDriveService(credentials.DriveAccessToken,
+                                  credentials.DriveRefreshToken,
+		                          credentials.DriveExpiry)
 	psvc := putio.NewPutIOService(credentials.PutIOToken)
 
 	// Create a folder with the current time and work within it
